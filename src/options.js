@@ -30,14 +30,14 @@ const save = function (object) {
 // Update visibility of page elements;
 const update_page = function () {
 
-    var manualButtonToggle = document.getElementById('manually-set-button-text');
-    var manualButtonText = document.getElementById('manual-toggle');
-
-    if (manualButtonToggle.checked) {
-        manualButtonText.classList.remove('disabled');
-    } else {
-        manualButtonText.classList.add('disabled');
-    }
+    // var manualButtonToggle = document.getElementById('manually-set-button-text');
+    // var manualButtonText = document.getElementById('manual-toggle');
+    //
+    // if (manualButtonToggle.checked) {
+    //     manualButtonText.classList.remove('disabled');
+    // } else {
+    //     manualButtonText.classList.add('disabled');
+    // }
 };
 
 // Show options
