@@ -1,15 +1,71 @@
 "use strict";
+(function() {
+  /**
+   * Approssimazione decimale di un numero.
+   *
+   * @param {String}  type  Il tipo di approssimazione.
+   * @param {Number}  value Il numero.
+   * @param {Integer} exp   L'esponente (the 10 logarithm of the adjustment base).
+   * @returns {Number} Il valore approssimato.
+   */
+  function decimalAdjust(type, value, exp) {
+    // Se exp è undefined o zero...
+    if (typeof exp === 'undefined' || +exp === 0) {
+      return Math[type](value);
+    }
+    value = +value;
+    exp = +exp;
+    // Se value non è un numero o exp non è un intero...
+    if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+      return NaN;
+    }
+    // Se value è negativo...
+    if (value < 0) {
+      return -decimalAdjust(type, -value, exp);
+    }
+    // Shift
+    value = value.toString().split('e');
+    value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+    // Shift back
+    value = value.toString().split('e');
+    return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+  }
+
+  // Decimal round
+  if (!Math.round10) {
+    Math.round10 = function(value, exp) {
+      return decimalAdjust('round', value, exp);
+    };
+  }
+  // Decimal floor
+  if (!Math.floor10) {
+    Math.floor10 = function(value, exp) {
+      return decimalAdjust('floor', value, exp);
+    };
+  }
+  // Decimal ceil
+  if (!Math.ceil10) {
+    Math.ceil10 = function(value, exp) {
+      return decimalAdjust('ceil', value, exp);
+    };
+  }
+})();
+
+
+const defaultOptions = {
+    'open-in-new-tab': true,
+    'open-search-by-in-new-tab': true,
+    'show-globe-icon': true,
+    'hide-images-subect-to-copyright': false,
+    'manually-set-button-text': false,
+    'button-text-view-image': '',
+    'button-text-search-by-image': '',
+};
 
 const themes = {
-  'morning': {
+  'current': {
     images: {
-      headerURL: 'images/empty.png',
-      additional_backgrounds: ['images/morning-right.png', 'images/morning-left.png','images/morning.png']
-    },
-
-    properties: {
-      additional_backgrounds_alignment: [ 'right top' , 'left top', 'center top' ],
-      additional_backgrounds_tiling: [ 'no-repeat', 'no-repeat', 'repeat'  ]
+      headerURL: '',
     },
 
     colors: {
@@ -24,111 +80,38 @@ const themes = {
       toolbar_vertical_separator: 'rgba(255,255,255,0.25)'
     }
   },
+  'previous': null
+};
 
-  'afternoon': {
-    images: {
-      headerURL: 'images/empty.png',
-      additional_backgrounds: ['images/afternoon-right.png', 'images/afternoon-left.png', 'images/afternoon.png']
-    },
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
 
-    properties: {
-      additional_backgrounds_alignment: [ 'right top' , 'left top', 'center top' ],
-      additional_backgrounds_tiling: [ 'no-repeat', 'no-repeat', 'repeat'  ]
-    },
+function randomColor() {
+  return ('rgb(' + randomInt(0, 255) + ',' + randomInt(0, 255) + ',' + randomInt(0, 255) + ')')
+}
 
-    colors: {
-      accentcolor: 'white',
-      textcolor: 'white',
-      toolbar: 'rgba(0,0,0,0.25)',
-      toolbar_text: 'rgba(255,255,255,1)',
-      toolbar_field: 'rgba(255,255,255,1)',
-      toolbar_field_text: '#0c0c0d',
-      toolbar_top_separator: 'rgba(0,0,0,0)',
-      toolbar_bottom_separator: 'rgba(0,0,0,0.25)',
-      toolbar_vertical_separator: 'rgba(255,255,255,0.25)'
-    }
-  },
+function randomAlphaColor(min, max) {
+  return ('rgba(' + randomInt(0, 255) + ',' + randomInt(0, 255) + ',' + randomInt(0, 255) +','+Math.round10(Math.random(), -2)+')')
+}
 
-  'night': {
-    images: {
-      headerURL: 'images/empty.png',
-      additional_backgrounds: ['images/night-right.png', 'images/night-left.png', 'images/night.png']
-    },
-
-    properties: {
-      additional_backgrounds_alignment: [ 'right top' , 'left top', 'center top' ],
-      additional_backgrounds_tiling: [ 'no-repeat', 'no-repeat', 'repeat'  ]
-    },
-
-    colors: {
-      accentcolor: 'white',
-      textcolor: 'white',
-      toolbar: 'rgba(0,0,0,0.25)',
-      toolbar_text: 'rgba(255,255,255,1)',
-      toolbar_field: 'rgba(255,255,255,1)',
-      toolbar_field_text: '#0c0c0d',
-      toolbar_top_separator: 'rgba(0,0,0,0)',
-      toolbar_bottom_separator: 'rgba(0,0,0,0.25)',
-      toolbar_vertical_separator: 'rgba(255,255,255,0.25)'
-    }
-  },
-
-  'dawn': {
-    images: {
-      headerURL: 'images/empty.png',
-      additional_backgrounds: ['images/dawn-right.png', 'images/dawn-left.png', 'images/dawn.png']
-    },
-
-    properties: {
-      additional_backgrounds_alignment: [ 'right top' , 'left top', 'center top' ],
-      additional_backgrounds_tiling: [ 'no-repeat', 'no-repeat', 'repeat'  ]
-    },
-
-    colors: {
-      accentcolor: 'white',
-      textcolor: 'white',
-      toolbar: 'rgba(0,0,0,0.25)',
-      toolbar_text: 'rgba(255,255,255,1)',
-      toolbar_field: 'rgba(255,255,255,1)',
-      toolbar_field_text: '#0c0c0d',
-      toolbar_top_separator: 'rgba(0,0,0,0)',
-      toolbar_bottom_separator: 'rgba(0,0,0,0.25)',
-      toolbar_vertical_separator: 'rgba(255,255,255,0.25)'
-    }
-  },
-
-  'privatebrowsing': {
-    images: {
-      headerURL: 'images/empty.png',
-      additional_backgrounds: ['images/private-right.png', 'images/private-left.png','images/private.png']
-    },
-
-    properties: {
-      additional_backgrounds_alignment: [ 'right top' , 'left top', 'center top' ],
-      additional_backgrounds_tiling: [ 'no-repeat', 'no-repeat', 'repeat'  ]
-    },
-
-    colors: {
-      accentcolor: '#9400ff',
-      textcolor: 'white',
-      toolbar: 'rgba(0,0,0,0.25)',
-      toolbar_text: 'rgba(255,255,255,1)',
-      toolbar_field: 'rgba(255,255,255,1)',
-      toolbar_field_text: '#363959',
-      toolbar_top_separator: 'rgba(0,0,0,0)',
-      toolbar_bottom_separator: 'rgba(0,0,0,0.25)',
-      toolbar_vertical_separator: 'rgba(255,255,255,0.25)'
+function newColorSet(theme) {
+  for (var colorAttr in theme.colors) {
+    if (theme.colors.hasOwnProperty(colorAttr)) {
+      theme.colors[colorAttr] = randomAlphaColor()
     }
   }
-};
+  return (theme)
+}
+
 
 // Morning, Afternoon or Night
 var currentTheme = '';
 async function setTheme(theme) {
-  if (currentTheme === theme) {
-    // No point in changing the theme if it has already been set.
-    return;
-  }
+  // if (currentTheme === theme) {
+  //   // No point in changing the theme if it has already been set.
+  //   return;
+  // }
   currentTheme = theme;
   // Theme each window with the appropriate theme (morning/afternoon/night/dawn/private)
   browser.windows.getAll().then(wins => wins.forEach(themeWindow));
@@ -145,27 +128,20 @@ function themeWindow(window) {
   }
 }
 
-function checkTime() {
-  let date = new Date();
-  let hours = date.getHours();
-  // zomg change
-  if ((hours >= 6) && (hours <= 12)) {
-    setTheme('morning');
-  }
-  else if ((hours >= 13) && (hours <= 18)) {
-    setTheme('afternoon');
-  }
-  else if ((hours >= 19) || (hours <= 4)) {
-    setTheme('night');
-  }
-  else {
-    setTheme('dawn');
-  }
-}
+/**
+ * Listen for messages from the background script.
+ * Call "beastify()" or "reset()".
+ */
+browser.runtime.onMessage.addListener((message) => {
+  if (message.command === "newTheme") {
 
-// On start up, check the time to see what theme to show.
-checkTime();
+    themes['new'] = newColorSet(themes.current)
 
-// Set up an alarm to check this regularly.
-browser.alarms.onAlarm.addListener(checkTime);
-browser.alarms.create('checkTime', {periodInMinutes: 5});
+    console.log(themes['new'].colors)
+
+    setTheme('new');
+  }
+  if (message.command === "undoTheme") {
+    setTheme(message.theme);
+  }
+});
