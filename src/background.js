@@ -1,66 +1,66 @@
 "use strict";
-(function() {
-  /**
-   * Approssimazione decimale di un numero.
-   *
-   * @param {String}  type  Il tipo di approssimazione.
-   * @param {Number}  value Il numero.
-   * @param {Integer} exp   L'esponente (the 10 logarithm of the adjustment base).
-   * @returns {Number} Il valore approssimato.
-   */
-  function decimalAdjust(type, value, exp) {
-    // Se exp è undefined o zero...
-    if (typeof exp === 'undefined' || +exp === 0) {
-      return Math[type](value);
-    }
-    value = +value;
-    exp = +exp;
-    // Se value non è un numero o exp non è un intero...
-    if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
-      return NaN;
-    }
-    // Se value è negativo...
-    if (value < 0) {
-      return -decimalAdjust(type, -value, exp);
-    }
-    // Shift
-    value = value.toString().split('e');
-    value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
-    // Shift back
-    value = value.toString().split('e');
-    return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
-  }
 
-  // Decimal round
-  if (!Math.round10) {
-    Math.round10 = function(value, exp) {
-      return decimalAdjust('round', value, exp);
-    };
+/**
+ * Approssimazione decimale di un numero.
+ *
+ * @param {String}  type  Il tipo di approssimazione.
+ * @param {Number}  value Il numero.
+ * @param {Integer} exp   L'esponente (the 10 logarithm of the adjustment base).
+ * @returns {Number} Il valore approssimato.
+ */
+function decimalAdjust(type, value, exp) {
+  // Se exp è undefined o zero...
+  if (typeof exp === 'undefined' || +exp === 0) {
+    return Math[type](value);
   }
-  // Decimal floor
-  if (!Math.floor10) {
-    Math.floor10 = function(value, exp) {
-      return decimalAdjust('floor', value, exp);
-    };
+  value = +value;
+  exp = +exp;
+  // Se value non è un numero o exp non è un intero...
+  if (isNaN(value) || !(typeof exp === 'number' && exp % 1 === 0)) {
+    return NaN;
   }
-  // Decimal ceil
-  if (!Math.ceil10) {
-    Math.ceil10 = function(value, exp) {
-      return decimalAdjust('ceil', value, exp);
-    };
+  // Se value è negativo...
+  if (value < 0) {
+    return -decimalAdjust(type, -value, exp);
   }
-})();
+  // Shift
+  value = value.toString().split('e');
+  value = Math[type](+(value[0] + 'e' + (value[1] ? (+value[1] - exp) : -exp)));
+  // Shift back
+  value = value.toString().split('e');
+  return +(value[0] + 'e' + (value[1] ? (+value[1] + exp) : exp));
+}
+
+// Decimal round
+if (!Math.round10) {
+  Math.round10 = function(value, exp) {
+    return decimalAdjust('round', value, exp);
+  };
+}
+// Decimal floor
+if (!Math.floor10) {
+  Math.floor10 = function(value, exp) {
+    return decimalAdjust('floor', value, exp);
+  };
+}
+// Decimal ceil
+if (!Math.ceil10) {
+  Math.ceil10 = function(value, exp) {
+    return decimalAdjust('ceil', value, exp);
+  };
+}
 
 
 const defaultOptions = {
-    'open-in-new-tab': true,
-    'open-search-by-in-new-tab': true,
-    'show-globe-icon': true,
-    'hide-images-subect-to-copyright': false,
-    'manually-set-button-text': false,
-    'button-text-view-image': '',
-    'button-text-search-by-image': '',
+  'allow-alpha': true,
 };
+
+// Save default options to storage
+chrome.storage.sync.get('defaultOptions', function() {
+  chrome.storage.sync.set({
+    defaultOptions
+  });
+});
 
 const themes = {
   'current': {
@@ -87,21 +87,50 @@ function randomInt(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-function randomColor() {
-  return ('rgb(' + randomInt(0, 255) + ',' + randomInt(0, 255) + ',' + randomInt(0, 255) + ')')
-}
+function randomColor(allowAlpha = true, allowNull = true, forceNull = false) {
+  let finalResult = null
+  let maxValue = 256
 
-function randomAlphaColor(min, max) {
-  return ('rgba(' + randomInt(0, 255) + ',' + randomInt(0, 255) + ',' + randomInt(0, 255) +','+Math.round10(Math.random(), -2)+')')
+  if (forceNull) {
+    return null
+  }
+
+  if (allowNull) {
+    maxValue = 257
+  }
+
+  if (allowAlpha) {
+    finalResult = 'rgba(' + randomInt(0, maxValue) + ',' + randomInt(0, maxValue) + ',' + randomInt(0, maxValue) + ',' + Math.round10(Math.random(), -2) + ')'
+  } else {
+    finalResult = 'rgb(' + randomInt(0, maxValue) + ',' + randomInt(0, maxValue) + ',' + randomInt(0, maxValue) + ')'
+  }
+
+  if (finalResult.includes('256')) {
+    finalResult = null
+  }
+
+  return finalResult
+
 }
 
 function newColorSet(theme) {
-  for (var colorAttr in theme.colors) {
-    if (theme.colors.hasOwnProperty(colorAttr)) {
-      theme.colors[colorAttr] = randomAlphaColor()
+
+  var options;
+  chrome.storage.sync.get(['options', 'defaultOptions'], function(storage) {
+    options = Object.assign(storage.defaultOptions, storage.options);
+
+    console.log(options['allow-alpha'] + " what")
+
+    for (var colorAttr in theme.colors) {
+      if (theme.colors.hasOwnProperty(colorAttr)) {
+        theme.colors[colorAttr] = randomColor(options['allow-alpha'], options['allow-null'])
+      }
     }
-  }
+
+  });
+
   return (theme)
+
 }
 
 
