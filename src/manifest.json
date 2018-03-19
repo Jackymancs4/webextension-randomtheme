@@ -16,7 +16,8 @@
   },
   "permissions": [
     "alarms",
-    "theme"
+    "theme",
+    "storage"
   ],
   "background": {
     "scripts": ["background.js"]
