@@ -19,7 +19,7 @@
     "theme"
   ],
   "background": {
-    "scripts": ["gradientus.js"]
+    "scripts": ["background.js"]
   },
   "browser_action": {
     "default_icon": "icon.png",
